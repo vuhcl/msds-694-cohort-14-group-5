@@ -1,9 +1,12 @@
 import asyncio
 import csv
+import os
 from itertools import product
 
 import httpx
 from bs4 import BeautifulSoup
+
+os.makedirs("data/slugs", exist_ok=True)
 
 
 async def scrape_album_slug(html, m_type):
@@ -27,10 +30,11 @@ async def scrape_album_slug(html, m_type):
 
 
 async def scrape_decade(decade):
+    base = "https://www.albumoftheyear.org"
+    output_file = f"slugs/album_slugs_{decade}s.csv"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
     }
-    url = f"https://www.albumoftheyear.org/{year}/releases/{page_num}/?type={m_type}"
     results = []
     if decade == 2020:
         years = range(decade, decade + 6)
@@ -41,6 +45,7 @@ async def scrape_decade(decade):
         stop_flag = True
         while stop_flag:
             page_num += 1
+            url = f"{base}/{year}/releases/{page_num}/?type={m_type}"
             async with httpx.AsyncClient() as client:
                 r = await client.get(url, headers=headers)
             data = await scrape_album_slug(r.text, m_type)
@@ -52,13 +57,11 @@ async def scrape_decade(decade):
                 # will also have nothing so we can stop scraping
                 stop_flag = False
     print(f"Completed decade {decade}s")
-    with open(
-        f"slugs/album_slugs_{decade}s.csv", "w", newline="", encoding="utf-8"
-    ) as f:
+    with open(output_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=results[0].keys())
         writer.writeheader()
         writer.writerows(results)
-    print(f"Saved to file 'albums_{decade}s.csv'")
+    print(f"Saved to file '{output_file}'")
 
 
 async def main():
