@@ -30,6 +30,7 @@ async def scrape_decade(decade):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
     }
+    url = f"https://www.albumoftheyear.org/{year}/releases/{page_num}/?type={m_type}"
     results = []
     if decade == 2020:
         years = range(decade, decade + 6)
@@ -41,10 +42,7 @@ async def scrape_decade(decade):
         while stop_flag:
             page_num += 1
             async with httpx.AsyncClient() as client:
-                r = await client.get(
-                    f"https://www.albumoftheyear.org/{year}/releases/{page_num}/?type={m_type}",
-                    headers=headers,
-                )
+                r = await client.get(url, headers=headers)
             data = await scrape_album_slug(r.text, m_type)
             if len(data) > 0:
                 results.extend(data)
@@ -54,7 +52,9 @@ async def scrape_decade(decade):
                 # will also have nothing so we can stop scraping
                 stop_flag = False
     print(f"Completed decade {decade}s")
-    with open(f"slugs/album_slugs_{decade}s.csv", "w", newline="", encoding="utf-8") as f:
+    with open(
+        f"slugs/album_slugs_{decade}s.csv", "w", newline="", encoding="utf-8"
+    ) as f:
         writer = csv.DictWriter(f, fieldnames=results[0].keys())
         writer.writeheader()
         writer.writerows(results)
