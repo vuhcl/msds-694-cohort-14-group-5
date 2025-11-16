@@ -87,7 +87,7 @@ async def scrape_critic_ratings_decade(decade):
     results = []
     albums = []
     input_file = f"data/slugs/album_slugs_{decade}s.csv"
-    output_file = f"data/user_ratings/user_ratings_{decade}s.csv"
+    output_file = f"data/critic_ratings/critic_ratings_{decade}s.csv"
     info_file = f"data/album_{decade}s.csv"
     with open(input_file, "r") as csvfile:
         reader = csv.reader(csvfile)

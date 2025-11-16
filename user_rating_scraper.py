@@ -71,7 +71,7 @@ async def scrape_user_ratings_decade(decade):
 
 async def main():
     coroutines = [
-        scrape_user_ratings_decade(decade) for decade in range(1970, 2021, 10)
+        scrape_user_ratings_decade(decade) for decade in range(1950, 2021, 10)
     ]
     results = await asyncio.gather(*coroutines)
     return results
