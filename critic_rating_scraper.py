@@ -103,7 +103,7 @@ async def scrape_critic_ratings_decade(decade):
         writer.writerows(results)
     print(f"Saved to file '{output_file}'")
     with open(info_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=results[0].keys())
+        writer = csv.DictWriter(f, fieldnames=albums[0].keys())
         writer.writeheader()
         writer.writerows(albums)
     print(f"Saved to file '{info_file}'")
