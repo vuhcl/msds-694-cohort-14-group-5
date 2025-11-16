@@ -6,6 +6,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 os.makedirs("data/critic_ratings", exist_ok=True)
+DELAY = 0.2
 
 
 async def get_album_info(soup, slug):
@@ -73,11 +74,12 @@ async def scrape_critic_ratings(slug):
     }
     reviews = []
     async with httpx.AsyncClient() as client:
-        r = await client.get(url, headers=headers)
+        r = await client.get(url, headers=headers, timeout=None)
         soup = BeautifulSoup(r.text, "lxml")
         info = await get_album_info(soup, slug)
         data = await get_critic_reviews(soup, slug)
         reviews.extend(data)
+        await asyncio.sleep(DELAY)
     return info, reviews
 
 
