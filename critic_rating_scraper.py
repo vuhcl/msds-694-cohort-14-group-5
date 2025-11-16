@@ -15,10 +15,14 @@ async def get_album_info(soup, slug):
     user_score = soup.select_one("div.albumUserScore a").text
     detail_row = soup.select_one("div.albumTopBox.info div.detailRow")
     texts = list(detail_row.stripped_strings)
-    month = texts[0]
-    date = texts[1].replace(",", "")
-    release_year = texts[2]
-    release_date = f"{month} {date}"
+    if len(texts) > 2:
+        month = texts[0]
+        date = texts[1].replace(",", "")
+        release_year = texts[2]
+        release_date = f"{month} {date}"
+    else:
+        release_year = texts[0]
+        release_date = None
     genre_metas = soup.select('div.detailRow meta[itemprop="genre"]')
     genres = "|".join([m["content"] for m in genre_metas])
     return {
@@ -35,17 +39,20 @@ async def get_album_info(soup, slug):
 
 async def get_critic_reviews(soup, slug):
     results = []
-    reviews = soup.select("div.albumReviewRow")
+    critic_section = soup.select_one("#criticReviewContainer")
+    reviews = critic_section.select("div.albumReviewRow")
     for row in reviews:
-        pub = row.select_one("div.publication").string
-        author = row.select_one("div.author a").string
+        pub = row.select_one("div.publication a").text
+        author = row.select_one("div.author a")
+        if author:
+            author = author.text
         review_text = row.select_one("div.albumReviewText")
         if review_text:
             review_text = review_text.text
         date = row.select_one("div.albumReviewLinks div.actionContainer[title]")[
             "title"
         ]
-        review_score = row.select_one("div.albumReviewRating").string
+        review_score = row.select_one("div.albumReviewRating").text
         results.append(
             {
                 "slug": slug,
@@ -83,10 +90,10 @@ async def scrape_critic_ratings_decade(decade):
     with open(input_file, "r") as csvfile:
         reader = csv.reader(csvfile)
         next(reader)
-    for row in reader:
-        info, data = await scrape_critic_ratings(row[-1])
-        results.extend(data)
-        albums.append(info)
+        for row in reader:
+            info, data = await scrape_critic_ratings(row[-1])
+            results.extend(data)
+            albums.append(info)
     print(f"Completed decade {decade}s")
     with open(output_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=results[0].keys())
